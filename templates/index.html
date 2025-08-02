@@ -1,0 +1,1177 @@
+﻿
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processing Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: gray;
+            min-height: 50vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+            .header h1 {
+                font-size: 2.5em;
+                margin-bottom: 10px;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            }
+
+        .main-content {
+            display: flex;
+            min-height: 500px;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #ffffff00;
+            padding: 30px;
+            border-right: 1px solid #e9ecef;
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .menu-list button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 13px;
+            background: none;
+            border: none;
+            font-size: 12px;
+            color: #333;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .submenu {
+            display: none;
+        }
+
+            .submenu.active {
+                display: block;
+                margin-top: 10px;
+            }
+
+        .back-button {
+            margin-bottom: 15px;
+            cursor: pointer;
+            color: #007bff;
+            font-weight: bold;
+        }
+
+
+        .image-area {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .upload-area {
+            border: 3px dashed #007bff;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 500px;
+        }
+
+            .upload-area:hover {
+                border-color: #0056b3;
+                background: #e6f0ff;
+                transform: translateY(-2px);
+            }
+
+            .upload-area.dragover {
+                border-color: #28a745;
+                background: #e6ffed;
+            }
+
+        #imageDisplay {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin: 20px 0;
+        }
+
+        .controls-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: transparent;
+            border-radius: 10px;
+            box-shadow: none;
+        }
+
+            .controls-section h3 {
+                color: #333;
+                margin-bottom: 15px;
+                font-size: 1.2em;
+                border-bottom: 2px solid #007bff;
+                padding-bottom: 5px;
+            }
+
+        .btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+            }
+
+            .btn:active {
+                transform: translateY(0);
+            }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+            .btn-success:hover {
+                box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+            }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #ff8c00);
+        }
+
+            .btn-warning:hover {
+                box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+            }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+
+            .btn-danger:hover {
+                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+            }
+
+        .input-group {
+            margin: 10px 0;
+        }
+
+            .input-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: 600;
+                color: #555;
+            }
+
+            .input-group input {
+                width: 100%;
+                padding: 10px;
+                border: 2px solid #e9ecef;
+                border-radius: 6px;
+                font-size: 14px;
+                transition: border-color 0.3s ease;
+            }
+
+                .input-group input:focus {
+                    outline: none;
+                    border-color: #007bff;
+                    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+                }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .image-info {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+        }
+
+        .lens {
+            position: absolute;
+            border: 3px solid #000;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: none;
+            display: none;
+            z-index: 10;
+        }
+
+            .lens img {
+                position: absolute;
+                transform: scale(2); /* Adjust zoom factor */
+                transform-origin: top left;
+                pointer-events: none;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> Image Processing Tool</h1>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="controls-section">
+                    <label class="btn btn-success" style="display: inline-block; cursor: pointer;">
+                        Choose Image
+                        <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.bmp" style="display: none;">
+                    </label>
+                </div>
+
+                <!-- New Upload DICOM Menu -->
+                <button class="btn btn-success" onclick="showSubmenu('uploadDICOMMenu')">Upload DICOM</button>
+                <div class="submenu" id="uploadDICOMMenu">
+                    <div class="back-button" onclick="backToMain()">← Back</div>
+                    <button class="btn btn-warning" onclick="document.getElementById('ctFile').click()">Upload CT</button>
+                    <button class="btn btn-warning" onclick="document.getElementById('mriFile').click()">Upload MRI</button>
+                </div>
+
+                <input type="file" id="ctFile" accept=".dcm" style="display: none;">
+                <input type="file" id="mriFile" accept=".dcm" style="display: none;">
+
+
+
+                <!-- Operation Menu List -->
+                <div class="menu-list" id="mainMenu">
+                    <button onclick="showSubmenu('grayscaleMenu')">Grayscale</button>
+                    <button onclick="showSubmenu('invertMenu')">Invert</button>
+                    <button onclick="showSubmenu('brightnessMenu')">Brightness</button>
+                    <button onclick="showSubmenu('resizeMenu')">Resize</button>
+                    <button onclick="showSubmenu('cropMenu')">Crop</button>
+                    <button onclick="showSubmenu('rotateMenu')">Rotate</button>
+                    <button onclick="showSubmenu('mirrorMenu')">Mirror Image</button>
+                    <button onclick="showSubmenu('rgbaMenu')">RGBA Image</button>
+                    <button onclick="showSubmenu('blendMenu')">Blend CT MRI</button>
+
+                </div>
+
+                <!-- Grayscale -->
+                <div class="submenu" id="grayscaleMenu">
+                    <div class="back-button" onclick="backToMain()">← Back</div>
+                    <button class="btn btn-warning" onclick="processImage('grayscale')">Convert</button>
+                </div>
+
+                <!-- Invert -->
+                <div class="submenu" id="invertMenu">
+                    <div class="back-button" onclick="backToMain()">← Back</div>
+                    <button class="btn btn-warning" onclick="processImage('invert')">Invert Colors</button>
+                </div>
+
+                <!-- Brightness -->
+                <div class="submenu" id="brightnessMenu">
+                    <div class="back-button" onclick="backToMain()">← Back</div>
+                    <label>Brightness Factor: <span id="brightnessValue">1.0</span></label>
+                    <input type="range" id="brightnessRange" min="0.1" max="2" step="0.01" value="1.0" oninput="updateBrightnessLabel()">
+                    <button class="btn btn-warning" onclick="applyBrightness()">Apply Brightness</button>
+                </div>
+
+                <!-- Resize -->
+                <div class="submenu" id="resizeMenu">
+                    <div class="back-button" onclick="backToMain()">← Back</div>
+                    <div class="input-group">
+                        <label>Width:</label>
+                        <input type="number" id="resizeWidth" placeholder="Width in pixels">
+                    </div>
+                    <div class="input-group">
+                        <label>Height:</label>
+                        <input type="number" id="resizeHeight" placeholder="Height in pixels">
+                    </div>
+                    <button class="btn btn-success" onclick="resizeImage()">Resize</button>
+                </div>
+
+                <!-- Crop -->
+                <div class="submenu" id="cropMenu">
+                    <div class="back-button" onclick="backToMain()">← Back</div>
+                    <div class="input-group">
+                        <label>X Position:</label>
+                        <input type="number" id="cropX" placeholder="X coordinate" value="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Y Position:</label>
+                        <input type="number" id="cropY" placeholder="Y coordinate" value="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Width:</label>
+                        <input type="number" id="cropWidth" placeholder="Crop width">
+                    </div>
+                    <div class="input-group">
+                        <label>Height:</label>
+                        <input type="number" id="cropHeight" placeholder="Crop height">
+                    </div>
+                    <button class="btn btn-success" onclick="cropImage()">Crop</button>
+                </div>
+
+                <!-- Rotate -->
+                <div class="submenu" id="rotateMenu">
+                    <div class="back-button" onclick="backToMain()">← Back</div>
+                    <div class="input-group">
+                        <label>Angle:</label>
+                        <input type="number" id="rotateAngle" value="90" step="90">
+                    </div>
+                    <button class="btn btn-success" onclick="rotateImage()">Rotate</button>
+                </div>
+
+                <!-- Mirrror Image -->
+                <div class="submenu" id="mirrorMenu">
+                    <div class="back-button" onclick="backToMain()">← Back</div>
+                    <button class="btn btn-warning" onclick="processImage('mirror')">Convert</button>
+                </div>
+
+                <div class="submenu" id="rgbaMenu">
+                    <div class="back-button" onclick="backToMain()">← Back</div>
+                    <label>Alpha : <span id="rgbaAlphaValue">1.0</span></label>
+                    <input type="range" id="rgbaAlphaRange" min="0" max="1" step="0.01" value="1.0" oninput="updateRgbaAlphaLabel()">
+                    <button class="btn btn-warning" onclick="applyRgbaAlpha()">Apply RGBA Alpha</button>
+                </div>
+
+                <div class="submenu" id="blendMenu">
+                    <div class="back-button" onclick="backToMain()">← Back</div>
+                    <label><strong>SELECT BLEND MODE:</strong></label>
+                    <select id="blendMethod" onchange="toggleAlphaInput()">
+                        <option value="alpha">Alpha Blending</option>
+                        <option value="multiply">Multiply Blending</option>
+                        <option value="false_color">False Color Blending</option>
+                    </select>
+                    <div id="alphaContainer" style="margin-top: 10px;">
+                        <label>Alpha: <span id="alphaVal">0.5</span></label>
+                        <input type="range" id="alphaRange" min="0" max="1" step="0.01" value="0.5"
+                               oninput="document.getElementById('alphaVal').innerText = this.value">
+                    </div>
+
+                    <button class="btn btn-success" onclick="blendImages()">Blend Images</button>
+                    <button class="btn btn-warning" onclick="toggleMoveCT()">Move CT Image</button>
+
+                </div>
+
+                <button class="btn btn-success" onclick="toggleZoom()">Toggle Zoom Tool</button>
+                <!--<form action="/display_volume" method="post">
+                    <button type="submit">Display 3D Fused Volume</button>
+                </form>-->
+
+
+                <!-- Download / Reset (persistent) -->
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="downloadImage()">Download</button>
+                    <button class="btn btn-danger" onclick="resetImage()">Reset</button>
+                </div>
+
+            </div>
+
+            <div class="image-area">
+                <div id="uploadPrompt" class="upload-area">
+                    <h3> No Image Selected</h3>
+                    <p>Upload an image to start processing</p>
+                </div>
+
+                <div id="imageContainer" style="display: none;">
+                    <img id="imageDisplay" src="" alt="Processed Image">
+                    <canvas id="blendedCanvas" width="512" height="512" style="display:none; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin: 20px 0;"></canvas>
+
+                    <div id="imageInfo" class="image-info"></div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <img id="ctPreview" src="" alt="CT Image" style="max-width: 48%; display: none;">
+                        <img id="mriPreview" src="" alt="MRI Image" style="max-width: 48%; display: none;">
+                    </div>
+                    <img id="imageDisplay" src="" alt="Blended Result" style="display: none;">
+                    <div id="imageInfo" class="image-info"></div>
+                </div>
+                <div id="lens" class="lens" style="display: none;">
+                    <img src="" id="lensImage">
+                </div>
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Processing image...</p>
+                </div>
+
+                <div id="error" class="error" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentImageData = null;
+        let selectedCTFile = null;
+        let selectedMRIFile = null;
+        let originalBlendedImage = null;
+        let ctX = 0;
+        let ctY = 0;
+        let currentBlendMethod = 'alpha';
+        let currentAlpha = 0.5;
+
+        document.getElementById('ctFile').addEventListener('change', function (e) {
+            if (!e.target.files.length) {
+                showError('CT file not selected.');
+                return;
+            }
+
+            selectedCTFile = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('ctPreview').src = e.target.result;
+                document.getElementById('ctPreview').style.display = 'block';
+            };
+            reader.readAsDataURL(selectedCTFile);
+
+            maybeUploadBothDicoms();
+        });
+
+        document.getElementById('mriFile').addEventListener('change', function (e) {
+            if (!e.target.files.length) {
+                showError('MRI file not selected.');
+                return;
+            }
+
+            selectedMRIFile = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('mriPreview').src = e.target.result;
+                document.getElementById('mriPreview').style.display = 'block';
+            };
+            reader.readAsDataURL(selectedMRIFile);
+
+            maybeUploadBothDicoms();
+        });
+
+        function maybeUploadBothDicoms() {
+            if (!selectedCTFile || !selectedMRIFile) return;
+
+            const formData = new FormData();
+            formData.append('ct', selectedCTFile);
+            formData.append('mri', selectedMRIFile);
+
+            showLoading(true);
+            fetch('/upload_dicom', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    showLoading(false);
+                    if (!data.success) {
+                        showError(data.error);
+                    } else {
+                        document.getElementById('uploadPrompt').style.display = 'none';
+                        document.getElementById('imageContainer').style.display = 'block';
+                        document.getElementById('imageDisplay').style.display = 'none';
+
+                        //const info = document.getElementById('imageInfo');
+                        //info.innerHTML = ` Dimensions: ${data.width} × ${data.height} pixels`;
+
+                        document.getElementById('resizeWidth').value = data.width;
+                        document.getElementById('resizeHeight').value = data.height;
+                        document.getElementById('cropWidth').value = data.width;
+                        document.getElementById('cropHeight').value = data.height;
+
+                        document.getElementById('ctPreview').src = data.ct_image;
+                        document.getElementById('mriPreview').src = data.mri_image;
+                        currentImageData = data;  // <-- ADD THIS LINE
+
+                        
+                    }
+                })
+                .catch(err => {
+                    showLoading(false);
+                    showError('Upload failed: ' + err.message);
+                });
+        }
+
+
+
+
+        // File input handling
+        document.getElementById('fileInput').addEventListener('change', function (e) {
+            if (e.target.files.length > 0) {
+                uploadImage(e.target.files[0]);
+            }
+        });
+
+        // Drag and drop handling
+        const uploadArea = document.querySelector('.upload-area');
+
+        uploadArea.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function (e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                uploadImage(files[0]);
+            }
+        });
+
+        function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            showLoading(true);
+            hideError();
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    showLoading(false);
+                    if (data.success) {
+                        displayImage(data);
+                        currentImageData = data;
+                    } else {
+                        showError(data.error);
+                    }
+                })
+                .catch(error => {
+                    showLoading(false);
+                    showError('Upload failed: ' + error.message);
+                });
+        }
+
+        function processImage(operation, params = {}) {
+            if (!currentImageData) {
+                showError('Please upload an image first');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+
+            fetch('/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    operation: operation,
+                    params: params
+                })
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        // ✅ Hide everything else
+                        showLoading(false);
+                        document.getElementById("ctPreview").style.display = "none";
+                        document.getElementById("mriPreview").style.display = "none";
+                        document.getElementById("blendedCanvas").style.display = "none";
+
+                        // ✅ Show only the image result
+                        const imageDisplay = document.getElementById("imageDisplay");
+                        imageDisplay.src = result.image;
+                        imageDisplay.style.display = "block";
+
+                        document.getElementById("dimensions").innerText =
+                            `Dimensions: ${result.width} × ${result.height} pixels`;
+                    } else {
+                        alert(result.message || "Image operation failed.");
+                    }
+                });
+        }
+
+        function resizeImage() {
+            const width = document.getElementById('resizeWidth').value;
+            const height = document.getElementById('resizeHeight').value;
+
+            if (!width || !height) {
+                showError('Please enter both width and height for resizing');
+                return;
+            }
+
+            processImage('resize', { width: parseInt(width), height: parseInt(height) });
+        }
+
+        function cropImage() {
+
+            const x = parseInt(document.getElementById('cropX').value) || 0;
+            const y = parseInt(document.getElementById('cropY').value) || 0;
+            const width = parseInt(document.getElementById('cropWidth').value);
+            const height = parseInt(document.getElementById('cropHeight').value);
+
+            const imgWidth = currentImageData?.width || 0;
+            const imgHeight = currentImageData?.height || 0;
+
+            if (
+                !width || !height ||
+                x < 0 || y < 0 ||
+                width <= 0 || height <= 0 ||
+                x >= imgWidth || y >= imgHeight
+            ) {
+                showError('Invalid crop: coordinates must be within image bounds.');
+                return;
+            }
+
+            processImage('crop', { x, y, width, height });
+        }
+
+
+        function resetImage() {
+            if (!currentImageData) {
+                showError('No image to reset');
+                return;
+            }
+
+            //const canvas = document.getElementById('blendedCanvas');
+            //const imageDisplay = document.getElementById('imageDisplay');
+            //const ctPreview = document.getElementById('ctPreview');
+            //const mriPreview = document.getElementById('mriPreview');
+
+            // Check if current image is a DICOM blend (CT + MRI)
+            if (currentImageData.ct_image && currentImageData.mri_image && originalBlendedImage) {
+                if (moveCTMode) toggleMoveCT();  // Reset CT movement
+
+                // Draw original canvas visually
+                const canvas = document.getElementById('blendedCanvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+
+                img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    canvas.style.display = 'block';
+
+                    document.getElementById('ctPreview').style.display = 'none';
+                    document.getElementById('mriPreview').style.display = 'none';
+                    document.getElementById('imageDisplay').style.display = 'none';
+
+                    ctX = 0;
+                    ctY = 0;
+
+                    // 🔁 Tell backend to reset too
+                    fetch('/reset', {
+                        method: 'POST'
+                    }).then(response => response.json())
+                        .then(data => {
+                            if (!data.success) {
+                                showError(data.error || "Backend reset failed");
+                            } else {
+                                currentImageData.image = data.image;
+                                currentImageData.width = data.width;
+                                currentImageData.height = data.height;
+                            }
+                        });
+                };
+
+                img.src = originalBlendedImage;
+                return;
+            }
+
+
+            // Fallback for regular images
+            showLoading(true);
+            hideError();
+
+            fetch('/reset', {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    showLoading(false);
+                    if (data.success) {
+                        displayImage(data);
+                        currentImageData = data;
+                    } else {
+                        showError(data.error);
+                    }
+                })
+                .catch(error => {
+                    showLoading(false);
+                    showError('Reset failed: ' + error.message);
+                });
+        }
+
+
+        function downloadImage() {
+            const canvas = document.getElementById('blendedCanvas');
+            const img = document.getElementById('imageDisplay');
+
+            // If canvas is shown, download the blended canvas image
+            if (canvas.style.display === 'block') {
+                const link = document.createElement('a');
+                link.download = 'blended_image.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
+            // Else fallback to downloading from the server
+            else if (img.style.display === 'block') {
+                window.location.href = '/download';
+            }
+            else {
+                showError('No image available to download');
+            }
+        }
+
+
+        function displayImage(data) {
+            document.getElementById('uploadPrompt').style.display = 'none';
+            document.getElementById('imageContainer').style.display = 'block';
+
+            const img = document.getElementById('imageDisplay');
+            img.src = data.image;
+            img.style.display = 'block';
+
+            document.getElementById('ctPreview').style.display = 'none';
+            document.getElementById('mriPreview').style.display = 'none';
+
+            const info = document.getElementById('imageInfo');
+            info.innerHTML = ` Dimensions: ${data.width} × ${data.height} pixels`;
+
+            // Update resize inputs with current dimensions
+            document.getElementById('resizeWidth').value = data.width;
+            document.getElementById('resizeHeight').value = data.height;
+            document.getElementById('cropWidth').value = data.width;
+            document.getElementById('cropHeight').value = data.height;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+        function updateBrightnessLabel() {
+            const val = document.getElementById('brightnessRange').value;
+            document.getElementById('brightnessValue').innerText = val;
+        }
+
+        function applyBrightness() {
+            const factor = parseFloat(document.getElementById('brightnessRange').value);
+            const canvas = document.getElementById("blendedCanvas");
+            if (canvas.style.display === 'block') {
+                const ctx = canvas.getContext("2d");
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i] = Math.min(data[i] * factor, 255);     // R
+                    data[i + 1] = Math.min(data[i + 1] * factor, 255); // G
+                    data[i + 2] = Math.min(data[i + 2] * factor, 255); // B
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+            }
+            else {
+                fetch('/reset', {
+                    method: 'POST'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            displayImage(data);
+                            currentImageData = data;
+
+                            // Now apply brightness on the fresh image
+                            processImage('brighten', { factor: factor });
+                        }
+                    });
+            }
+
+            
+        }
+
+        function rotateImage() {
+            const angle = document.getElementById('rotateAngle').value || 90;
+            processImage('rotate', { angle: parseInt(angle) });
+        }
+
+        function showSubmenu(menuId) {
+            document.querySelectorAll('.submenu').forEach(el => el.classList.remove('active'));
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById(menuId).classList.add('active');
+        }
+
+        function backToMain() {
+            document.querySelectorAll('.submenu').forEach(el => el.classList.remove('active'));
+            document.getElementById('mainMenu').style.display = 'block';
+        }
+
+        let zoomEnabled = false;
+
+        function toggleZoom() {
+            zoomEnabled = !zoomEnabled;
+            const lens = document.getElementById('lens');
+            const lensImage = document.getElementById('lensImage');
+            const canvas = document.getElementById('blendedCanvas');
+            const image = document.getElementById('imageDisplay');
+
+            if (zoomEnabled) {
+                lens.style.display = 'block';
+
+                // Set lens image based on which element is visible
+                if (canvas.style.display === 'block') {
+                    lensImage.src = canvas.toDataURL();  // canvas image
+                } else if (image.style.display === 'block') {
+                    lensImage.src = image.src;
+                }
+            } else {
+                lens.style.display = 'none';
+            }
+        }
+
+        const imageDisplay = document.getElementById('imageDisplay');
+        const lens = document.getElementById('lens');
+        const lensImage = document.getElementById('lensImage');
+
+        imageDisplay.addEventListener('mouseenter', () => {
+            if (zoomEnabled) lens.style.display = 'block';
+            lensImage.src = imageDisplay.src;
+        });
+
+        imageDisplay.addEventListener('mouseleave', () => {
+            if (zoomEnabled) lens.style.display = 'none';
+        });
+
+        imageDisplay.addEventListener('mousemove', function (e) {
+            if (!zoomEnabled) return;
+
+            const rect = imageDisplay.getBoundingClientRect();
+            const scaleX = imageDisplay.naturalWidth / rect.width;
+            const scaleY = imageDisplay.naturalHeight / rect.height;
+
+            const lensSize = 150;
+            const zoom = 2;
+
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            lens.style.left = `${e.pageX - lensSize / 2}px`;
+            lens.style.top = `${e.pageY - lensSize / 2}px`;
+
+            lensImage.style.left = `-${x * scaleX * zoom - lensSize / 2}px`;
+            lensImage.style.top = `-${y * scaleY * zoom - lensSize / 2}px`;
+        });
+
+        function updateRgbaAlphaLabel() {
+            const val = document.getElementById('rgbaAlphaRange').value;
+            document.getElementById('rgbaAlphaValue').innerText = val;
+        }
+
+        function applyRgbaAlpha() {
+            const alpha = parseFloat(document.getElementById('rgbaAlphaRange').value);
+            processImage('rgba_alpha', { alpha: alpha });
+        }
+
+        function uploadDicom() {
+            const ct = document.getElementById('ctFile').files[0];
+            const mri = document.getElementById('mriFile').files[0];
+
+            if (!ct || !mri) {
+                showError("Please select both CT and MRI DICOM files.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('ct', ct);
+            formData.append('mri', mri);
+
+            showLoading(true);
+            fetch('/upload_dicom', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    showLoading(false);
+                    if (!data.success) showError(data.error);
+                })
+                .catch(err => {
+                    showLoading(false);
+                    showError('Upload failed: ' + err.message);
+                });
+        }
+        function toggleAlphaInput() {
+            const method = document.getElementById('blendMethod').value;
+            const alphaContainer = document.getElementById('alphaContainer');
+            alphaContainer.style.display = (method === 'alpha') ? 'block' : 'none';
+        }
+
+        function blendImages() {
+            const method = document.getElementById('blendMethod').value;
+            const alpha = parseFloat(document.getElementById('alphaRange').value);
+
+            currentBlendMethod = method;
+            currentAlpha = alpha;
+
+            const params = { method: method };
+            if (method === 'alpha') {
+                params.alpha = alpha;
+            }
+
+            fetch('/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ operation: 'blend', params: params })
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        const imageDisplay = document.getElementById("imageDisplay");
+                        const ctPreview = document.getElementById("ctPreview");
+                        const mriPreview = document.getElementById("mriPreview");
+                        const canvas = document.getElementById("blendedCanvas");
+
+                        // Show preview images (needed for redrawCanvas)
+                        ctImg.src = result.ct_image;
+                        mriImg.src = result.mri_image;
+
+                        ctPreview.style.display = "none";
+                        mriPreview.style.display = "none";
+
+                        // Show canvas for blending modes
+                        canvas.style.display = "block";
+                        imageDisplay.style.display = "none";
+
+                        // Set canvas dimensions
+                        canvas.width = result.width;
+                        canvas.height = result.height;
+                        currentImageData.blend_method = method;
+                        currentImageData.alpha = alpha;
+                        // Redraw canvas
+                        redrawCanvas(method, alpha);
+                        originalBlendedImage = canvas.toDataURL("image/png");
+                        // Set dimensions info
+                        document.getElementById("dimensions").innerText = `Dimensions: ${result.width} × ${result.height} pixels`;
+                       
+
+
+                    } else {
+                        alert(result.message || "Blending failed.");
+                    }
+                });
+        }
+        let moveCTMode = false;
+        let isDragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+        
+
+        const canvas = document.getElementById('blendedCanvas');
+        const ctx = canvas.getContext('2d');
+        let mriImg = new Image();
+        let ctImg = new Image();
+
+        function toggleMoveCT() {
+            moveCTMode = !moveCTMode;
+            const btn = document.querySelector('button[onclick="toggleMoveCT()"]');
+            btn.textContent = moveCTMode ? "Fix CT Image" : "Move CT Image";
+
+            if (moveCTMode) {
+                canvas.addEventListener('mousedown', startDrag);
+                canvas.addEventListener('mousemove', onDrag);
+                canvas.addEventListener('mouseup', stopDrag);
+                canvas.addEventListener('mouseleave', stopDrag);
+            } else {
+                canvas.removeEventListener('mousedown', startDrag);
+                canvas.removeEventListener('mousemove', onDrag);
+                canvas.removeEventListener('mouseup', stopDrag);
+                canvas.removeEventListener('mouseleave', stopDrag);
+
+                redrawCanvas(currentBlendMethod, currentAlpha);
+            }
+        }
+
+        function startDrag(e) {
+            isDragging = true;
+            const rect = canvas.getBoundingClientRect();
+            offsetX = e.clientX - rect.left - ctX;
+            offsetY = e.clientY - rect.top - ctY;
+        }
+
+        function onDrag(e) {
+            if (!isDragging) return;
+            const rect = canvas.getBoundingClientRect();
+            ctX = e.clientX - rect.left - offsetX;
+            ctY = e.clientY - rect.top - offsetY;
+            redrawCanvas();
+        }
+
+        function stopDrag() {
+            isDragging = false;
+        }
+
+        function redrawCanvas(method = currentBlendMethod, alpha = currentAlpha) {
+            if (!mriImg.src || !ctImg.src) return;
+
+            const ctx = document.getElementById('blendedCanvas').getContext('2d');
+            const width = mriImg.width;
+            const height = mriImg.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Always draw MRI first
+            ctx.globalAlpha = 1.0;
+            ctx.drawImage(mriImg, 0, 0);
+
+            // Then blend CT based on method
+            if (method === 'alpha') {
+                ctx.globalAlpha = alpha;
+                ctx.drawImage(ctImg, ctX, ctY);
+            } else if (method === 'multiply') {
+                // Simulate multiply using "destination-in" + draw twice technique
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = width;
+                tempCanvas.height = height;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                // Multiply CT * MRI manually
+                tempCtx.drawImage(mriImg, 0, 0);
+                const mriData = tempCtx.getImageData(0, 0, width, height);
+
+                tempCtx.clearRect(0, 0, width, height);
+                tempCtx.drawImage(ctImg, ctX, ctY);
+                const ctData = tempCtx.getImageData(0, 0, width, height);
+
+                const outputData = tempCtx.createImageData(width, height);
+                for (let i = 0; i < mriData.data.length; i += 4) {
+                    outputData.data[i] = ctData.data[i] * mriData.data[i] / 255; // R
+                    outputData.data[i + 1] = ctData.data[i + 1] * mriData.data[i + 1] / 255; // G
+                    outputData.data[i + 2] = ctData.data[i + 2] * mriData.data[i + 2] / 255; // B
+                    outputData.data[i + 3] = 255;
+                }
+
+                tempCtx.putImageData(outputData, 0, 0);
+                ctx.globalAlpha = 1.0;
+                ctx.drawImage(tempCanvas, 0, 0);
+            } else if (method === 'false_color') {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = width;
+                tempCanvas.height = height;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                tempCtx.drawImage(mriImg, 0, 0);
+                const mriData = tempCtx.getImageData(0, 0, width, height);
+
+                tempCtx.clearRect(0, 0, width, height);
+                tempCtx.drawImage(ctImg, ctX, ctY);
+                const ctData = tempCtx.getImageData(0, 0, width, height);
+
+                const outputData = tempCtx.createImageData(width, height);
+                for (let i = 0; i < ctData.data.length; i += 4) {
+                    outputData.data[i] = ctData.data[i];     // R from CT
+                    outputData.data[i + 1] = mriData.data[i];     // G from MRI
+                    outputData.data[i + 2] = 0;                   // B = 0
+                    outputData.data[i + 3] = 255;                 // Alpha
+                }
+
+                tempCtx.putImageData(outputData, 0, 0);
+                ctx.drawImage(tempCanvas, 0, 0);
+            }
+
+            ctx.globalAlpha = 1.0;
+        }
+
+        
+
+
+
+
+    </script>
+</body>
+</html>
